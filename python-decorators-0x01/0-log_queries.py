@@ -1,11 +1,7 @@
 #!/usr/bin/python3
 import sqlite3
 import functools
-import logging
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from datetime import datetime
 
 def log_queries(func):
     """Decorator to log SQL queries"""
@@ -14,7 +10,8 @@ def log_queries(func):
         # Log the query if it's passed as an argument
         query = kwargs.get('query') or args[0] if args else None
         if query:
-            logger.info(f"Executing query: {query}")
+            timestamp = datetime.now()
+            print(f"[{timestamp}] {query}")
         return func(*args, **kwargs)
     return wrapper
 
