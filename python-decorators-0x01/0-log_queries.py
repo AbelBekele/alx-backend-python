@@ -27,5 +27,5 @@ def fetch_all_users(query):
     conn.close()
     return results
 
-if __name__ == "__main__":
-    users = fetch_all_users(query="SELECT * FROM users")
+#### fetch users while logging the query
+users = fetch_all_users(query="SELECT * FROM users")
