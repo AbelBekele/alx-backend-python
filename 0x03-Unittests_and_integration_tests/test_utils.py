@@ -9,12 +9,19 @@ from unittest.mock import patch, Mock
 
 class TestAccessNestedMap(unittest.TestCase):
     """Test cases for AccessNestedMap function"""
+    
     @parameterized.expand([
         ({"a": 1}, ("a",), 1),
         ({"a": {"b": 2}}, ("a",), {"b": 2}),
         ({"a": {"b": 2}}, ("a", "b"), 2),
     ])
     def test_access_nested_map(self, nested_map, path, expected):
+        """Test access_nested_map function with different inputs
+        Args:
+            nested_map: A nested map
+            path: A tuple of path to value
+            expected: Expected result
+        """
         self.assertEqual(access_nested_map(nested_map, path), expected)
 
     @parameterized.expand([
@@ -22,6 +29,11 @@ class TestAccessNestedMap(unittest.TestCase):
         ({"a": 1}, ("a", "b")),
     ])
     def test_access_nested_map_exception(self, nested_map, path):
+        """Test access_nested_map function raises KeyError for invalid inputs
+        Args:
+            nested_map: A nested map
+            path: A tuple of path to value
+        """
         with self.assertRaises(KeyError) as cm:
             access_nested_map(nested_map, path)
         self.assertEqual(str(cm.exception), f"'{path[-1]}'")
