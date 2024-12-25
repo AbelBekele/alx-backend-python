@@ -7,32 +7,28 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 from .models import User, Conversation, Message
-from .serializers import (UserSerializer, UserCreateSerializer, 
-                         ConversationSerializer, MessageSerializer)
+from .serializers import (
+    UserSerializer, UserCreateSerializer,
+    ConversationSerializer, ConversationCreateSerializer,
+    MessageSerializer
+)
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    queryset = Conversation.objects.all()
-    serializer_class = ConversationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return ConversationCreateSerializer
+        return ConversationSerializer
 
     def get_queryset(self):
-        # Only return conversations where the user is a participant
-        return Conversation.objects.filter(participants=self.request.user)
+        return Conversation.objects.filter(
+            participants=self.request.user
+        ).prefetch_related('participants', 'messages')
 
     def perform_create(self, serializer):
-        conversation = serializer.save()
-        # Add the creator as a participant
-        conversation.participants.add(self.request.user)
-
-    @action(detail=True, methods=['post'])
-    def add_participant(self, request, pk=None):
-        conversation = self.get_object()
-        user_id = request.data.get('user_id')
-        if user_id:
-            conversation.participants.add(user_id)
-            return Response({'status': 'participant added'})
-        return Response({'error': 'user_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save(creator=self.request.user)
 
 class MessageViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
