@@ -6,6 +6,10 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
+from .models import User, Conversation, Message
+from .serializers import (UserSerializer, UserCreateSerializer, 
+                         ConversationSerializer, MessageSerializer)
+
 
 class ConversationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -45,3 +49,16 @@ class MessageViewSet(viewsets.ModelViewSet):
         if self.request.user not in conversation.participants.all():
             raise PermissionError("You are not a participant in this conversation")
         serializer.save(sender=self.request.user)
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return UserCreateSerializer
+        return UserSerializer
+    
+    def get_permissions(self):
+        if self.action == 'create':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
