@@ -4,6 +4,7 @@ from django.contrib.auth import logout
 from django.contrib import messages
 from django.db.models import Q, Prefetch
 from .models import Message, Notification
+from django.http import JsonResponse
 
 @login_required
 def edit_message(request, message_id):
@@ -131,3 +132,38 @@ def user_conversations(request):
     return render(request, 'messaging/conversations.html', {
         'conversations': grouped_conversations
     }) 
+
+@login_required
+def unread_messages(request):
+    """
+    Display unread messages for the current user
+    """
+    unread = Message.unread.unread_for_user(request.user)
+    return render(request, 'messaging/unread_messages.html', {'messages': unread})
+
+@login_required
+def mark_messages_read(request):
+    """
+    Mark multiple messages as read
+    """
+    if request.method == 'POST':
+        message_ids = request.POST.getlist('message_ids')
+        Message.unread.mark_as_read(message_ids, request.user)
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+@login_required
+def message_detail(request, message_id):
+    """
+    Display a message and mark it as read
+    """
+    message = get_object_or_404(
+        Message.objects.select_related('sender', 'receiver'),
+        id=message_id
+    )
+    
+    # Mark message as read if the current user is the receiver
+    if message.receiver == request.user and not message.read:
+        message.mark_as_read()
+    
+    return render(request, 'messaging/message_detail.html', {'message': message}) 

@@ -18,11 +18,12 @@ class RepliesInline(admin.TabularInline):
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('sender', 'receiver', 'content', 'timestamp', 'edited', 'is_reply')
-    list_filter = ('sender', 'receiver', 'timestamp', 'edited')
+    list_display = ('sender', 'receiver', 'content', 'timestamp', 'edited', 'is_reply', 'read')
+    list_filter = ('sender', 'receiver', 'timestamp', 'edited', 'read')
     search_fields = ('content', 'sender__username', 'receiver__username')
     inlines = [MessageHistoryInline, RepliesInline]
     raw_id_fields = ('parent_message',)
+    actions = ['mark_as_read', 'mark_as_unread']
 
     def is_reply(self, obj):
         return bool(obj.parent_message)
@@ -33,6 +34,14 @@ class MessageAdmin(admin.ModelAdmin):
         return super().get_queryset(request).select_related(
             'sender', 'receiver', 'parent_message'
         )
+    
+    def mark_as_read(self, request, queryset):
+        queryset.update(read=True)
+    mark_as_read.short_description = "Mark selected messages as read"
+    
+    def mark_as_unread(self, request, queryset):
+        queryset.update(read=False)
+    mark_as_unread.short_description = "Mark selected messages as unread"
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):

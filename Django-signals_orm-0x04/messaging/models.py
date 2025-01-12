@@ -1,7 +1,34 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 
 User = get_user_model()
+
+class UnreadMessagesManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset()
+    
+    def unread_for_user(self, user):
+        """Get unread messages for a specific user with optimized query"""
+        return self.get_queryset().filter(
+            receiver=user,
+            read=False
+        ).select_related(
+            'sender'
+        ).only(
+            'sender__username',
+            'content',
+            'timestamp',
+            'read'
+        )
+    
+    def mark_as_read(self, message_ids, user):
+        """Mark multiple messages as read for a user"""
+        return self.get_queryset().filter(
+            id__in=message_ids,
+            receiver=user,
+            read=False
+        ).update(read=True)
 
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
@@ -10,12 +37,23 @@ class Message(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     edited = models.BooleanField(default=False)
     parent_message = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
+    read = models.BooleanField(default=False)
+    
+    # Add the custom manager while keeping the default manager
+    objects = models.Manager()
+    unread = UnreadMessagesManager()
     
     class Meta:
         ordering = ['timestamp']
     
     def __str__(self):
         return f'{self.sender} to {self.receiver}: {self.content[:50]}'
+    
+    def mark_as_read(self):
+        """Mark a single message as read"""
+        if not self.read:
+            self.read = True
+            self.save(update_fields=['read'])
     
     def get_thread(self):
         """Get all messages in the thread, including parent and replies"""
