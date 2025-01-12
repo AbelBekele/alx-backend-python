@@ -41,17 +41,37 @@ def message_list(request):
     """
     Display messages for the current user with optimized queries
     """
-    # Get all messages where user is either sender or receiver
     messages = Message.objects.filter(
         Q(sender=request.user) | Q(receiver=request.user),
         parent_message__isnull=True  # Only get top-level messages
     ).select_related(
         'sender', 
         'receiver'
+    ).only(
+        'sender__username',
+        'receiver__username',
+        'content',
+        'timestamp',
+        'edited',
+        'read',
+        'id',
+        'sender_id',
+        'receiver_id'
     ).prefetch_related(
         Prefetch(
             'replies',
-            queryset=Message.objects.select_related('sender', 'receiver')
+            queryset=Message.objects.select_related('sender', 'receiver').only(
+                'sender__username',
+                'receiver__username',
+                'content',
+                'timestamp',
+                'edited',
+                'read',
+                'id',
+                'sender_id',
+                'receiver_id',
+                'parent_message_id'
+            )
         )
     ).order_by('-timestamp')
 
@@ -113,12 +133,19 @@ def user_conversations(request):
     """
     Display all conversations for the current user
     """
-    # Get all unique conversations
     conversations = Message.objects.filter(
         Q(sender=request.user) | Q(receiver=request.user)
     ).select_related(
         'sender',
         'receiver'
+    ).only(
+        'sender__username',
+        'receiver__username',
+        'content',
+        'timestamp',
+        'id',
+        'sender_id',
+        'receiver_id'
     ).order_by('timestamp').distinct()
 
     # Group messages by conversation partner
@@ -131,7 +158,7 @@ def user_conversations(request):
 
     return render(request, 'messaging/conversations.html', {
         'conversations': grouped_conversations
-    }) 
+    })
 
 @login_required
 def unread_messages(request):
@@ -158,7 +185,17 @@ def message_detail(request, message_id):
     Display a message and mark it as read
     """
     message = get_object_or_404(
-        Message.objects.select_related('sender', 'receiver'),
+        Message.objects.select_related('sender', 'receiver').only(
+            'sender__username',
+            'receiver__username',
+            'content',
+            'timestamp',
+            'edited',
+            'read',
+            'id',
+            'sender_id',
+            'receiver_id'
+        ),
         id=message_id
     )
     
