@@ -1,5 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth import logout
+from django.contrib import messages
 
 @login_required
 def edit_message(request, message_id):
@@ -18,3 +20,15 @@ def edit_message(request, message_id):
             message.save()
     
     return redirect('message_detail', message_id=message.id) 
+
+@login_required
+def delete_user(request):
+    if request.method == 'POST':
+        user = request.user
+        # Logout the user before deletion to avoid any session issues
+        logout(request)
+        # The actual deletion of related data will be handled by signals
+        user.delete()
+        messages.success(request, 'Your account has been successfully deleted.')
+        return redirect('login')
+    return redirect('profile')  # Redirect to profile page if not a POST request 
