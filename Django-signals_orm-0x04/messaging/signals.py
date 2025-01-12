@@ -20,9 +20,15 @@ def log_message_edit(sender, instance, **kwargs):
             old_message = Message.objects.get(id=instance.id)
             # Only create history if content has changed
             if old_message.content != instance.content:
+                # Get the current user from thread local storage
+                from django.contrib.auth.models import AnonymousUser
+                from django.db.models import F
+                current_user = getattr(instance, '_current_user', None)
+                
                 MessageHistory.objects.create(
                     message=instance,
-                    old_content=old_message.content
+                    old_content=old_message.content,
+                    edited_by=current_user  # Add the user who made the edit
                 )
                 instance.edited = True
         except Message.DoesNotExist:

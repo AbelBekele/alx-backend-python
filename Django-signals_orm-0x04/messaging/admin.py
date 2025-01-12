@@ -3,7 +3,7 @@ from .models import Message, Notification, MessageHistory
 
 class MessageHistoryInline(admin.TabularInline):
     model = MessageHistory
-    readonly_fields = ('old_content', 'edited_at')
+    readonly_fields = ('old_content', 'edited_at', 'edited_by')
     extra = 0
     can_delete = False
 
@@ -22,7 +22,7 @@ class NotificationAdmin(admin.ModelAdmin):
 
 @admin.register(MessageHistory)
 class MessageHistoryAdmin(admin.ModelAdmin):
-    list_display = ('message', 'old_content', 'edited_at')
-    list_filter = ('edited_at',)
-    search_fields = ('message__content', 'old_content')
-    readonly_fields = ('message', 'old_content', 'edited_at') 
+    list_display = ('message', 'old_content', 'edited_by', 'edited_at')
+    list_filter = ('edited_at', 'edited_by')
+    search_fields = ('message__content', 'old_content', 'edited_by__username')
+    readonly_fields = ('message', 'old_content', 'edited_at', 'edited_by') 
