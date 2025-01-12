@@ -7,12 +7,32 @@ class MessageHistoryInline(admin.TabularInline):
     extra = 0
     can_delete = False
 
+class RepliesInline(admin.TabularInline):
+    model = Message
+    fk_name = 'parent_message'
+    readonly_fields = ('sender', 'receiver', 'content', 'timestamp', 'edited')
+    extra = 0
+    can_delete = False
+    verbose_name = "Reply"
+    verbose_name_plural = "Replies"
+
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('sender', 'receiver', 'content', 'timestamp', 'edited')
+    list_display = ('sender', 'receiver', 'content', 'timestamp', 'edited', 'is_reply')
     list_filter = ('sender', 'receiver', 'timestamp', 'edited')
     search_fields = ('content', 'sender__username', 'receiver__username')
-    inlines = [MessageHistoryInline]
+    inlines = [MessageHistoryInline, RepliesInline]
+    raw_id_fields = ('parent_message',)
+
+    def is_reply(self, obj):
+        return bool(obj.parent_message)
+    is_reply.boolean = True
+    is_reply.short_description = "Is Reply"
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'sender', 'receiver', 'parent_message'
+        )
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):

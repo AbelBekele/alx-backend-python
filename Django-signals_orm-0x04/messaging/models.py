@@ -9,9 +9,21 @@ class Message(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     edited = models.BooleanField(default=False)
-
+    parent_message = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
+    
+    class Meta:
+        ordering = ['timestamp']
+    
     def __str__(self):
         return f'{self.sender} to {self.receiver}: {self.content[:50]}'
+    
+    def get_thread(self):
+        """Get all messages in the thread, including parent and replies"""
+        if self.parent_message:
+            return self.parent_message.get_thread()
+        return Message.objects.filter(
+            models.Q(id=self.id) | models.Q(parent_message=self)
+        ).select_related('sender', 'receiver', 'parent_message')
 
 class MessageHistory(models.Model):
     message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='history')
