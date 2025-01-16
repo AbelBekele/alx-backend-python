@@ -1,0 +1,45 @@
+{
+    "info": {
+        "name": "Messaging App API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/api/token/",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"email\":\"user@example.com\",\"password\":\"password123\"}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Conversations",
+            "item": [
+                {
+                    "name": "Get Conversations",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/conversations/",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": "{{access_token}}"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
