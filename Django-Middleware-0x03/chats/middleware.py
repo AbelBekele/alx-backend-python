@@ -1,51 +1,109 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Callable
 from django.http import HttpResponseForbidden
 
-# Configure logging for RequestLoggingMiddleware (existing)
 logging.basicConfig(
     filename='requests.log',
     level=logging.INFO,
     format='%(message)s'
 )
 
+
 class RequestLoggingMiddleware:
+    """
+    Existing logging middleware
+    """
     def __init__(self, get_response: Callable):
         self.get_response = get_response
 
     def __call__(self, request):
-        # Determine if a user is authenticated; otherwise, label as "Anonymous"
         user = request.user.username if request.user.is_authenticated else 'Anonymous'
+        logging.info(f"{datetime.now()} - User: {user} - Path: {request.path}")
 
-        # Format the log message
-        log_message = f"{datetime.now()} - User: {user} - Path: {request.path}"
-
-        # Write log entry to requests.log
-        logging.info(log_message)
-
-        # Call the next middleware or view
-        response = self.get_response(request)
-        return response
+        return self.get_response(request)
 
 
 class RestrictAccessByTimeMiddleware:
     """
-    Middleware that denies access outside of the allowed time window 
-    (e.g., 9:00 AM to 6:00 PM).
+    Existing time-based access restriction middleware
     """
-
     def __init__(self, get_response: Callable):
         self.get_response = get_response
 
     def __call__(self, request):
-        current_time = datetime.now().time()
-        current_hour = current_time.hour
-
-        # Deny access if it is before 9 AM or after/equal 6 PM
+        current_hour = datetime.now().hour
+        # Allow only 9 AM to 6 PM (adjust as needed)
         if current_hour < 9 or current_hour >= 18:
-            return HttpResponseForbidden(
-                "Access to the chat is restricted outside of 9 AM to 6 PM."
-            )
+            return HttpResponseForbidden("Access to the chat is restricted outside of 9 AM to 6 PM.")
 
         return self.get_response(request)
+
+
+class OffensiveLanguageMiddleware:
+    """
+    Middleware that enforces a rate limit on chat message creation, 
+    based on a client's IP address. (E.g. max 5 messages per 1 minute.)
+
+    Despite the name, this example focuses on limiting the number of 
+    messages in a timeframe. For actual 'offensive language' filtering, 
+    you'd parse the message content and block it if it contains 
+    restricted terms.
+    """
+
+    # Allowed messages in time window
+    MAX_MESSAGES = 5
+    # Time window in seconds (e.g., 60 = 1 minute)
+    TIME_WINDOW = 60
+
+    def __init__(self, get_response: Callable):
+        self.get_response = get_response
+
+        # Tracks IP -> list of recent POST (message) timestamps
+        self.ip_tracking = {}
+
+    def __call__(self, request):
+        # We only want to rate-limit requests that create/send messages.
+        # For simplicity, let's check if it's a POST to any "/messages" endpoint.
+        # Adjust as necessary for your use-case (e.g., /api/messages).
+        if request.method == 'POST' and '/messages' in request.path.lower():
+            ip_address = self._get_client_ip(request)
+            now = datetime.now()
+
+            # Initialize tracking for this IP if not present
+            if ip_address not in self.ip_tracking:
+                self.ip_tracking[ip_address] = []
+
+            # Filter out timestamps older than TIME_WINDOW from now
+            window_start = now - timedelta(seconds=self.TIME_WINDOW)
+            recent_timestamps = [
+                t for t in self.ip_tracking[ip_address] if t > window_start
+            ]
+
+            # Check how many requests remain in the window after cleaning
+            if len(recent_timestamps) >= self.MAX_MESSAGES:
+                # Block the request
+                return HttpResponseForbidden(
+                    "Message limit exceeded. Please wait before sending more messages."
+                )
+
+            # Otherwise, record the current request's timestamp
+            recent_timestamps.append(now)
+            self.ip_tracking[ip_address] = recent_timestamps
+
+        # Proceed with the request if not blocked
+        return self.get_response(request)
+
+    def _get_client_ip(self, request):
+        """
+        Helper method to safely extract the IP address 
+        from the request headers (including proxies).
+        """
+        # If behind a proxy/load balancer, the real IP could be in HTTP_X_FORWARDED_FOR
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            # x_forwarded_for may contain multiple IPs, first is the client’s
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR', None)
+        return ip or "unknown"
