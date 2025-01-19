@@ -107,3 +107,34 @@ class OffensiveLanguageMiddleware:
         else:
             ip = request.META.get('REMOTE_ADDR', None)
         return ip or "unknown"
+
+class RolePermissionMiddleware:
+    """
+    Middleware that ensures only users with certain roles 
+    (e.g. admin or moderator) can proceed for protected actions.
+    If user is not authenticated or does not have one of these roles, 
+    return a 403 Forbidden.
+    """
+
+    ALLOWED_ROLES = ['admin', 'moderator']  # or use ['admin', 'host'] if 'host' acts like 'moderator'
+
+    def __init__(self, get_response: Callable):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = request.user
+
+        # Only check role if the user is authenticated
+        if user.is_authenticated:
+            # If the user's role is not in ALLOWED_ROLES, block the request
+            if getattr(user, 'role', None) not in self.ALLOWED_ROLES:
+                return HttpResponseForbidden(
+                    "You do not have permission to perform this action."
+                )
+        else:
+            # If not authenticated, also forbid
+            return HttpResponseForbidden(
+                "You must be logged in with sufficient privileges."
+            )
+
+        return self.get_response(request)
