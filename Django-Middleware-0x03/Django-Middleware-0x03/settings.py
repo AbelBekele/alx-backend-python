@@ -74,7 +74,7 @@ MIDDLEWARE = [
     'chats.middleware.RestrictAccessByTimeMiddleware',
     'chats.middleware.RequestLoggingMiddleware',
     'chats.middleware.OffensiveLanguageMiddleware',
-    'chats.middleware.RolePermissionMiddleware',  
+    'chats.middleware.RolepermissionMiddleware',  
 ]
 
 # Custom user model

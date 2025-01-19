@@ -108,7 +108,7 @@ class OffensiveLanguageMiddleware:
             ip = request.META.get('REMOTE_ADDR', None)
         return ip or "unknown"
 
-class RolePermissionMiddleware:
+class RolepermissionMiddleware:
     """
     Middleware that ensures only users with certain roles 
     (e.g. admin or moderator) can proceed for protected actions.
