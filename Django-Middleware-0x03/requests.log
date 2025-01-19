@@ -1,0 +1,39 @@
+2025-01-19 21:28:02.172369 - User: Anonymous - Path: /api/
+Unauthorized: /api/
+2025-01-19 21:28:03.861077 - User: Anonymous - Path: /api/
+Unauthorized: /api/
+2025-01-19 21:28:06.442068 - User: Anonymous - Path: /api/
+Unauthorized: /api/
+2025-01-19 21:28:06.944692 - User: Anonymous - Path: /api/
+Unauthorized: /api/
+2025-01-19 21:28:07.444335 - User: Anonymous - Path: /api/
+Unauthorized: /api/
+2025-01-19 21:28:07.647938 - User: Anonymous - Path: /api/
+Unauthorized: /api/
+2025-01-19 21:28:08.015980 - User: Anonymous - Path: /api/
+Unauthorized: /api/
+2025-01-19 21:29:43.255060 - User: Anonymous - Path: /admin/
+2025-01-19 21:29:43.267549 - User: Anonymous - Path: /admin/login/
+2025-01-19 21:29:43.696864 - User: Anonymous - Path: /admin/login/
+2025-01-19 21:29:55.981693 - User: Anonymous - Path: /admin/login/
+2025-01-19 21:29:57.591879 - User: None - Path: /admin/
+2025-01-19 21:30:01.334853 - User: None - Path: /admin/auth/group/add/
+2025-01-19 21:30:01.572461 - User: None - Path: /admin/jsi18n/
+2025-01-19 21:30:11.547069 - User: None - Path: /admin/
+2025-01-19 21:30:17.611815 - User: None - Path: /admin/auth/group/add/
+2025-01-19 21:30:17.665582 - User: None - Path: /admin/jsi18n/
+2025-01-19 21:30:23.767356 - User: None - Path: /admin/auth/group/add/
+2025-01-19 21:30:23.810466 - User: None - Path: /admin/auth/group/
+2025-01-19 21:30:24.004040 - User: None - Path: /admin/jsi18n/
+2025-01-19 21:30:25.516745 - User: None - Path: /admin/auth/group/1/change/
+2025-01-19 21:30:25.597639 - User: None - Path: /admin/jsi18n/
+2025-01-19 21:30:27.500698 - User: None - Path: /admin/
+2025-01-19 21:30:29.026515 - User: None - Path: /admin/auth/group/
+2025-01-19 21:30:29.068182 - User: None - Path: /admin/jsi18n/
+2025-01-19 21:30:30.804696 - User: None - Path: /admin/auth/group/
+2025-01-19 21:30:30.855481 - User: None - Path: /admin/jsi18n/
+2025-01-19 21:30:31.924625 - User: None - Path: /admin/auth/group/1/change/
+2025-01-19 21:30:31.984352 - User: None - Path: /admin/jsi18n/
+2025-01-19 21:30:44.273735 - User: None - Path: /admin/
+2025-01-19 21:30:46.400747 - User: None - Path: /admin/auth/group/1/change/
+2025-01-19 21:30:46.437733 - User: None - Path: /admin/jsi18n/
