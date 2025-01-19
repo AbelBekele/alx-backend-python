@@ -37,3 +37,12 @@ Unauthorized: /api/
 2025-01-19 21:30:44.273735 - User: None - Path: /admin/
 2025-01-19 21:30:46.400747 - User: None - Path: /admin/auth/group/1/change/
 2025-01-19 21:30:46.437733 - User: None - Path: /admin/jsi18n/
+2025-01-19 21:53:00.629021 - User: None - Path: /
+2025-01-19 21:53:00.651697 - User: None - Path: /api/
+2025-01-19 21:53:05.505617 - User: None - Path: /admin/
+2025-01-19 21:53:07.960930 - User: None - Path: /admin/auth/group/
+2025-01-19 21:53:08.012629 - User: None - Path: /admin/jsi18n/
+2025-01-19 21:53:09.467209 - User: None - Path: /admin/
+C:\Users\User\Documents\Abel\ALX\ProDev\alx-backend-python\alx-backend-python\Django-Middleware-0x03\chats\middleware.py changed, reloading.
+C:\Users\User\Documents\Abel\ALX\ProDev\alx-backend-python\alx-backend-python\Django-Middleware-0x03\Django-Middleware-0x03\settings.py changed, reloading.
+C:\Users\User\Documents\Abel\ALX\ProDev\alx-backend-python\alx-backend-python\Django-Middleware-0x03\Django-Middleware-0x03\settings.py changed, reloading.
