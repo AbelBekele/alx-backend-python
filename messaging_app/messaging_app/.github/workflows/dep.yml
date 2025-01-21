@@ -1,0 +1,45 @@
+name: Build and Deploy Docker Image
+
+on:
+  push:
+    branches: [ main ]
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.abellb }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./messaging_app
+        push: true
+        tags: |
+          ${{ secrets.abellb }}/messaging-app:latest
+          ${{ secrets.abellb }}/messaging-app:${{ github.sha }}
+        cache-from: type=registry,ref=${{ secrets.abellb }}/messaging-app:latest
+        cache-to: type=inline
+
+    - name: Image digest
+      run: echo ${{ steps.docker_build.outputs.digest }}
+
+    - name: Notify on success
+      if: success()
+      run: |
+        echo "Docker image successfully built and pushed!"
+        echo "Image: ${{ secrets.abellb }}/messaging-app:latest"
+        echo "Image: ${{ secrets.abellb }}/messaging-app:${{ github.sha }}"
