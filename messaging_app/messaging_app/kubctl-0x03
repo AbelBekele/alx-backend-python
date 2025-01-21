@@ -1,0 +1,107 @@
+#!/bin/bash
+
+# Colors for output
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+# Function to check if a command exists
+check_command() {
+    if ! command -v $1 &> /dev/null; then
+        echo -e "${RED}Error: $1 is not installed${NC}"
+        exit 1
+    fi
+}
+
+# Function to monitor application availability
+monitor_availability() {
+    local service_ip=$1
+    local start_time=$(date +%s)
+    local request_count=0
+    local failed_requests=0
+
+    echo -e "${BLUE}Starting availability monitoring...${NC}"
+    
+    while true; do
+        response=$(curl -s -o /dev/null -w "%{http_code}" http://$service_ip/health)
+        ((request_count++))
+        
+        if [ "$response" != "200" ]; then
+            ((failed_requests++))
+            echo -e "${YELLOW}Request failed with status: $response${NC}"
+        fi
+        
+        # Calculate availability percentage
+        local availability=$(( (request_count - failed_requests) * 100 / request_count ))
+        echo -e "${GREEN}Availability: $availability% (Total: $request_count, Failed: $failed_requests)${NC}"
+        
+        sleep 1
+    done
+}
+
+# Check required commands
+check_command kubectl
+check_command curl
+
+# Get the service IP
+SERVICE_IP=$(kubectl get service django-messaging-service -o jsonpath='{.spec.clusterIP}')
+
+if [ -z "$SERVICE_IP" ]; then
+    echo -e "${RED}Error: Could not get service IP${NC}"
+    exit 1
+fi
+
+# Start monitoring in background
+monitor_availability $SERVICE_IP &
+MONITOR_PID=$!
+
+# Store initial pod state
+echo -e "${BLUE}Initial pod state:${NC}"
+kubectl get pods -l app=django-messaging
+
+# Apply the updated deployment
+echo -e "\n${BLUE}Applying rolling update...${NC}"
+kubectl apply -f blue_deployment.yaml
+
+# Monitor the rollout status
+echo -e "\n${BLUE}Monitoring rollout status...${NC}"
+if ! kubectl rollout status deployment/django-messaging-blue --timeout=300s; then
+    echo -e "${RED}Rollout failed! Rolling back...${NC}"
+    kubectl rollout undo deployment/django-messaging-blue
+    kill $MONITOR_PID
+    exit 1
+fi
+
+# Wait a bit to ensure all pods are fully ready
+sleep 10
+
+# Verify the update
+echo -e "\n${BLUE}Verifying deployment status:${NC}"
+kubectl get pods -l app=django-messaging
+
+# Check if all pods are running and ready
+READY_PODS=$(kubectl get pods -l app=django-messaging -o jsonpath='{.items[*].status.containerStatuses[*].ready}' | tr ' ' '\n' | grep -c "true")
+TOTAL_PODS=$(kubectl get pods -l app=django-messaging --no-headers | wc -l)
+
+if [ "$READY_PODS" -eq "$TOTAL_PODS" ]; then
+    echo -e "${GREEN}Rolling update completed successfully!${NC}"
+else
+    echo -e "${RED}Some pods are not ready. Please check the deployment.${NC}"
+fi
+
+# Show deployment details
+echo -e "\n${BLUE}Final Deployment Details:${NC}"
+kubectl describe deployment django-messaging-blue | grep -A 5 "Events:"
+
+# Stop the monitoring
+kill $MONITOR_PID
+
+# Final status check
+echo -e "\n${GREEN}Current pod status:${NC}"
+kubectl get pods -l app=django-messaging
+
+echo -e "\n${GREEN}Deployment image version:${NC}"
+kubectl get deployment django-messaging-blue -o jsonpath='{.spec.template.spec.containers[0].image}'
+echo -e "\n" 
