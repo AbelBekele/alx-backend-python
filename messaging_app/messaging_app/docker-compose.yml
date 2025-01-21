@@ -3,7 +3,7 @@ version: '3.8'
 services:
   web:
     build: ./messaging_app
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - ./messaging_app:/app
     ports:
@@ -11,7 +11,7 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=messaging_app.settings
       - DB_HOST=db
-      - DB_NAME=${MYSQL_DATABASE}
+      - DB_NAME=${MYSQL_DB}
       - DB_USER=${MYSQL_USER}
       - DB_PASSWORD=${MYSQL_PASSWORD}
     depends_on:
@@ -22,7 +22,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     environment:
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_DB=${MYSQL_DB}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
