@@ -30,4 +30,4 @@ services:
       - "3306:3306"
 
 volumes:
-  mysql_data: 
+  mysql_data:
