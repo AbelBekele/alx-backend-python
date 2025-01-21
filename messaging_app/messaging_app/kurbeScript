@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Colors for output
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+echo "Starting Kubernetes setup script..."
+
+# Check if minikube is installed
+if ! command -v minikube &> /dev/null; then
+    echo -e "${RED}Minikube not found. Installing minikube...${NC}"
+    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    sudo install minikube-linux-amd64 /usr/local/bin/minikube
+    rm minikube-linux-amd64
+fi
+
+# Check if kubectl is installed
+if ! command -v kubectl &> /dev/null; then
+    echo -e "${RED}kubectl not found. Installing kubectl...${NC}"
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    rm kubectl
+fi
+
+# Start minikube cluster
+echo "Starting minikube cluster..."
+minikube start
+
+# Verify cluster is running
+echo -e "\n${GREEN}Checking cluster information:${NC}"
+kubectl cluster-info
+
+# Get available pods
+echo -e "\n${GREEN}Retrieving available pods:${NC}"
+kubectl get pods --all-namespaces
+
+echo -e "\n${GREEN}Kubernetes setup completed successfully!${NC}" 
